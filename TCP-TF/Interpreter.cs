@@ -5,14 +5,16 @@
 
         private readonly Dictionary<char, string> _charToMusicalNotes;
         private readonly Dictionary<char, int> _charToInstruments;
+        private SoundReproduction _reproducer;
 
         /// <summary>
         /// Construtor do interpretador.
         /// </summary>
-        public Interpreter()
+        public Interpreter(SoundReproduction reproducer)
         {
             _charToMusicalNotes = InicializeMusicalNotesDict();
             _charToInstruments = InicializeInstrumentsDict();
+            _reproducer = reproducer;
         }
 
         /// <summary>
@@ -20,36 +22,35 @@
         /// </summary>
         public void Interpret(char[] text_characteres)
         {
-            Sound reproducer = new Sound();
             for (int i = 0; i < text_characteres.Length; i++)
             {
                 char character = text_characteres[i];
                 if (CharCorrespondsToNote(character))
                 {
-                    reproducer.PlayNote(_charToMusicalNotes[character]);
+                    _reproducer.PlayNote(_charToMusicalNotes[character]);
                 }
                 else if (character == ' ')
                 {
-                    reproducer.DoubleVolume();
+                    _reproducer.SetVolume(_reproducer.GetVolume() * 2);
                 }
                 else if (CharCorrespondsToInstrument(character))
                 {
-                    reproducer.SetInstrument(_charToInstruments[character]);
+                    _reproducer.SetInstrument(_charToInstruments[character]);
                 }
                 else if (char.IsDigit(character))
                 {
-                    reproducer.SetInstrument(reproducer.GetInstrument() + (int)char.GetNumericValue(character));
+                    _reproducer.SetInstrument(_reproducer.GetInstrument() + (int)char.GetNumericValue(character));
                 }
                 else if (character == '!' || character == '.')
                 {
-                    reproducer.IncreaseOneOctave();
+                    _reproducer.IncreaseOneOctave();
                 }
                 else if (i > 0)
                 {
                     char prev_character = text_characteres[i - 1];
                     if (CharCorrespondsToNote(prev_character))
                     {
-                        reproducer.PlayNote(_charToMusicalNotes[prev_character]);
+                        _reproducer.PlayNote(_charToMusicalNotes[prev_character]);
                     }
                 }
             }

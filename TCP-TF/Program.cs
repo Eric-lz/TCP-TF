@@ -1,15 +1,15 @@
 namespace TCP_TF
 {
-  internal static class Program
-  {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
-    [STAThread]
-    static void Main()
+    internal static class Program
     {
-      ApplicationConfiguration.Initialize();
-      Application.Run(new MainWindow());
+        /// <summary>
+        ///  The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            ApplicationConfiguration.Initialize();
+            Application.Run(new MainWindow());
+        }
     }
-  }
 }
