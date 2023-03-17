@@ -67,7 +67,7 @@
       this.button_Play.TabIndex = 2;
       this.button_Play.Text = "Play";
       this.button_Play.UseVisualStyleBackColor = true;
-      this.button_Play.Click += new System.EventHandler(this.button_Run_Click);
+      this.button_Play.Click += new System.EventHandler(this.button_Play_Click);
       // 
       // label_BPM
       // 

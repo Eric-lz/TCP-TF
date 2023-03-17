@@ -7,9 +7,15 @@ namespace TCP_TF
       InitializeComponent();
     }
 
-    private void button_Run_Click(object sender, EventArgs e)
+    private void button_Play_Click(object sender, EventArgs e)
     {
-      
+        /*
+        string text =   ;// ler texto ou arquivo de texto
+        Parser parser = new Parser();
+        Interpreter interpreter = new Interpreter();
+
+        interpreter.Interpret(parser.Parse(text)); 
+        */
     }
   }
 }
