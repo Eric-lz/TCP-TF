@@ -37,6 +37,7 @@
       this.list_Instrument = new System.Windows.Forms.ComboBox();
       this.label_Instrument = new System.Windows.Forms.Label();
       this.button_Stop = new System.Windows.Forms.Button();
+      this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
       ((System.ComponentModel.ISupportInitialize)(this.num_BPM)).BeginInit();
       this.SuspendLayout();
       // 
@@ -110,6 +111,7 @@
       this.button_Input.TabIndex = 7;
       this.button_Input.Text = "Browse";
       this.button_Input.UseVisualStyleBackColor = true;
+      this.button_Input.Click += new System.EventHandler(this.button_Input_Click);
       // 
       // list_Instrument
       // 
@@ -143,6 +145,11 @@
       this.button_Stop.TabIndex = 12;
       this.button_Stop.Text = "Stop";
       this.button_Stop.UseVisualStyleBackColor = true;
+      // 
+      // openFileDialog1
+      // 
+      this.openFileDialog1.FileName = "openFileDialog1";
+      this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
       // 
       // MainWindow
       // 
@@ -179,5 +186,6 @@
     private ComboBox list_Instrument;
     private Label label_Instrument;
     private Button button_Stop;
+    private OpenFileDialog openFileDialog1;
   }
 }

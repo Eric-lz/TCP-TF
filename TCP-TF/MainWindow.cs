@@ -16,10 +16,22 @@ namespace TCP_TF
 
         private void button_Play_Click(object sender, EventArgs e)
         {
-            /*
-            string text =   ;// ler texto ou arquivo de texto
-            interpreter.Interpret(parser.Parse(text)); 
-            */
+            string text = text_Input.Text;  // ler texto
+            _interpreter.SetBPM((int)num_BPM.Value);
+            _interpreter.SetInstrument(list_Instrument.SelectedIndex);
+            _interpreter.Interpret(_parser.Parse(text));
         }
+
+    private void button_Input_Click(object sender, EventArgs e)
+    {
+      openFileDialog1.ShowDialog();
     }
+
+    private void openFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+      string fileName = openFileDialog1.FileName;
+      string fileContent = File.ReadAllText(fileName);
+      text_Input.Text = fileContent;
+    }
+  }
 }

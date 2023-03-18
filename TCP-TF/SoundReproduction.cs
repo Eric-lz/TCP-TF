@@ -1,4 +1,6 @@
 ﻿using Microsoft.VisualBasic.ApplicationServices;
+using NAudio.Midi;
+using NAudio.SoundFont;
 
 namespace TCP_TF
 {
@@ -6,14 +8,17 @@ namespace TCP_TF
     {
         private int _currentInstrument;
         private int _currentVolume;
-        private string _currentOctave;
+        private int _currentOctave;
+        private float _currentBPM;
 
         const int DEFAULT_INSTRUMENT = 1;
-        const int DEFAULT_VOLUME = 50;
-        const string DEFAULT_OCTAVE = "Dó";
+        const int DEFAULT_VOLUME = 60;
+        const int DEFAULT_OCTAVE = 0;
+        const int DEFAULT_BPM = 120;
 
-        const int MAX_VOLUME = 100;
+        const int MAX_VOLUME = 120;
 
+        MidiOut midiOut = new MidiOut(0);
 
         public SoundReproduction()
         {
@@ -23,11 +28,20 @@ namespace TCP_TF
         }
 
         /// <summary>
+        /// Setter do BPM.
+        /// </summary>
+        public void SetBPM(int bpm)
+        {
+            _currentBPM = bpm;
+        }
+
+        /// <summary>
         /// Setter do instrumento.
         /// </summary>
         public void SetInstrument(int instrument)
         {
             _currentInstrument = instrument;
+            midiOut.Send(new PatchChangeEvent(0, 1, instrument).GetAsShortMessage());
         }
 
         /// <summary>
@@ -66,29 +80,52 @@ namespace TCP_TF
         /// </summary>
         public void PlayNote(string note)
         {
+            float sleepTime = (1 / _currentBPM) * 60 * 1000;
+
             switch (note)
             {
                 case ("Lá"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(69+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(69+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Si"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(71+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(71+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Dó"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(60+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(60+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Ré"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(62+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(62+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Mi"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(64+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(64+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Fá"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(65+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(65+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 case ("Sol"):
-                    
+                  midiOut.Send(MidiMessage.StartNote(67+(_currentOctave*12), _currentVolume, 1).RawData);
+                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
+                  midiOut.Send(MidiMessage.StopNote(67+(_currentOctave*12), 0, 1).RawData);
                 break;
+
                 default: 
                 break;
             }
@@ -99,16 +136,9 @@ namespace TCP_TF
         /// </summary>
         public void IncreaseOneOctave()
         {
-            string[] notes = Enum.GetNames(typeof(Notes));
-            int nextOctave = Array.IndexOf(notes, _currentOctave) + 1;
-
-            if (nextOctave <= 6)
+            if (_currentOctave <= 4)
             {
-                _currentOctave = notes[nextOctave];
-            }
-            else if (nextOctave == 7)
-            {
-                _currentOctave = "Dó";
+                _currentOctave++;
             }
             else
             {

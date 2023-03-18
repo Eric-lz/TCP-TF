@@ -1,4 +1,6 @@
-﻿namespace TCP_TF
+﻿using System.Diagnostics.Metrics;
+
+namespace TCP_TF
 {
     public class Interpreter
     {
@@ -6,6 +8,8 @@
         private readonly Dictionary<char, string> _charToMusicalNotes;
         private readonly Dictionary<char, int> _charToInstruments;
         private SoundReproduction _reproducer;
+        private float _currentBPM;
+        private int _currentInstrument;
 
         /// <summary>
         /// Construtor do interpretador.
@@ -31,7 +35,7 @@
                 }
                 else if (character == ' ')
                 {
-                    _reproducer.SetVolume(_reproducer.GetVolume() * 2);
+                    _reproducer.SetVolume(_reproducer.GetVolume() + 30);
                 }
                 else if (CharCorrespondsToInstrument(character))
                 {
@@ -41,7 +45,7 @@
                 {
                     _reproducer.SetInstrument(_reproducer.GetInstrument() + (int)char.GetNumericValue(character));
                 }
-                else if (character == '!' || character == '.')
+                else if (character == '?' || character == '.')
                 {
                     _reproducer.IncreaseOneOctave();
                 }
@@ -111,6 +115,48 @@
             };
             return charToInstruments;
         }
-    }
+
+        /// <summary>
+        /// Setter do BPM.
+        /// </summary>
+        public void SetBPM(int bpm)
+        {
+          _currentBPM = bpm;
+          _reproducer.SetBPM(bpm);
+        }
+
+        /// <summary>
+        /// Setter do Instrumento.
+        /// </summary>
+        public void SetInstrument(int input)
+        {
+          int instrument;
+
+          switch(input){
+            case 1:
+              instrument = 24;
+            break;
+
+            case 2:
+              instrument = 64;
+            break;
+
+            case 3:
+              instrument = 79;
+            break;
+
+            case 4:
+              instrument = 90;
+            break;
+
+            default:
+              instrument = 0;
+            break;
+          }
+
+          _currentInstrument = instrument;
+          _reproducer.SetInstrument(instrument);
+        }
+  }
 }
 
