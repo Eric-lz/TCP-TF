@@ -33,7 +33,7 @@
       this.button_Play = new System.Windows.Forms.Button();
       this.label_BPM = new System.Windows.Forms.Label();
       this.num_BPM = new System.Windows.Forms.NumericUpDown();
-      this.button_Input = new System.Windows.Forms.Button();
+      this.button_Browse = new System.Windows.Forms.Button();
       this.list_Instrument = new System.Windows.Forms.ComboBox();
       this.label_Instrument = new System.Windows.Forms.Label();
       this.button_Stop = new System.Windows.Forms.Button();
@@ -103,15 +103,15 @@
             0,
             0});
       // 
-      // button_Input
+      // button_Browse
       // 
-      this.button_Input.Location = new System.Drawing.Point(366, 15);
-      this.button_Input.Name = "button_Input";
-      this.button_Input.Size = new System.Drawing.Size(89, 30);
-      this.button_Input.TabIndex = 7;
-      this.button_Input.Text = "Browse";
-      this.button_Input.UseVisualStyleBackColor = true;
-      this.button_Input.Click += new System.EventHandler(this.button_Input_Click);
+      this.button_Browse.Location = new System.Drawing.Point(366, 15);
+      this.button_Browse.Name = "button_Browse";
+      this.button_Browse.Size = new System.Drawing.Size(89, 30);
+      this.button_Browse.TabIndex = 7;
+      this.button_Browse.Text = "Browse";
+      this.button_Browse.UseVisualStyleBackColor = true;
+      this.button_Browse.Click += new System.EventHandler(this.button_Browse_Click);
       // 
       // list_Instrument
       // 
@@ -160,7 +160,7 @@
       this.Controls.Add(this.button_Stop);
       this.Controls.Add(this.label_Instrument);
       this.Controls.Add(this.list_Instrument);
-      this.Controls.Add(this.button_Input);
+      this.Controls.Add(this.button_Browse);
       this.Controls.Add(this.num_BPM);
       this.Controls.Add(this.label_BPM);
       this.Controls.Add(this.button_Play);
@@ -183,7 +183,7 @@
     private Button button_Play;
     private Label label_BPM;
     private NumericUpDown num_BPM;
-    private Button button_Input;
+    private Button button_Browse;
     private ComboBox list_Instrument;
     private Label label_Instrument;
     private Button button_Stop;
