@@ -7,6 +7,7 @@ namespace TCP_TF
 
     private readonly Dictionary<char, string> _charToMusicalNotes;
     private readonly Dictionary<char, int> _charToInstruments;
+    private readonly Dictionary<string, int> _instrumentToMIDI;
     private SoundReproduction _reproducer;
     private float _currentBPM;
     private int _currentInstrument;
@@ -20,6 +21,7 @@ namespace TCP_TF
     {
       _charToMusicalNotes = InicializeMusicalNotesDict();
       _charToInstruments = InicializeInstrumentsDict();
+      _instrumentToMIDI = InicializeNameToMIDIDict();
       _reproducer = reproducer;
     }
 
@@ -106,34 +108,10 @@ namespace TCP_TF
     /// <summary>
     /// Setter do Instrumento.
     /// </summary>
-    public void SetInstrument(int input)
+    public void SetInstrument(string input)
     {
-      int instrument;
-
-      switch(input){
-        case 1:
-          instrument = 24;
-        break;
-
-        case 2:
-          instrument = 64;
-        break;
-
-        case 3:
-          instrument = 79;
-        break;
-
-        case 4:
-          instrument = 90;
-        break;
-
-        default:
-          instrument = 0;
-        break;
-      }
-
-      _currentInstrument = instrument;
-      _reproducer.SetInstrument(instrument);
+      _currentInstrument = _instrumentToMIDI[input];
+      _reproducer.SetInstrument(_currentInstrument);
     }
         
     /// <summary>
@@ -188,6 +166,27 @@ namespace TCP_TF
         {',', 20}
       };
       return charToInstruments;
+    }
+
+    /// <summary>
+    /// Inicializa o dicionário que mapeia cada instrumento para seu valor MIDI.
+    /// </summary>
+    private Dictionary<string, int> InicializeNameToMIDIDict()
+    {
+      Dictionary<string, int> instrumentToMIDI = new Dictionary<string, int>
+      {
+        {"Piano", 0},
+        {"Tubular Bell", 14},
+        {"Accordion", 21},
+        {"Acoustic Guitar", 24},
+        {"Distortion Guitar", 30},
+        {"Slap Bass", 36},
+        {"Synth Bass", 38},
+        {"Ocarina", 79},
+        {"Polysynth", 90 },
+        {"Synth Drum", 118}
+      };
+      return instrumentToMIDI;
     }
   }
 }

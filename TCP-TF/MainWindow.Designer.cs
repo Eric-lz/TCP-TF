@@ -118,9 +118,15 @@
       this.list_Instrument.FormattingEnabled = true;
       this.list_Instrument.Items.AddRange(new object[] {
             "Piano",
-            "Guitarra",
-            "Saxofone",
-            "Ocarina"});
+            "Tubular Bell",
+            "Accordion",
+            "Acoustic Guitar",
+            "Distortion Guitar",
+            "Slap Bass",
+            "Synth Bass",
+            "Ocarina",
+            "Polysynth",
+            "Synth Drum"});
       this.list_Instrument.Location = new System.Drawing.Point(633, 129);
       this.list_Instrument.Name = "list_Instrument";
       this.list_Instrument.Size = new System.Drawing.Size(86, 29);
