@@ -6,21 +6,25 @@ namespace TCP_TF
 {
     public class SoundReproduction
     {
+        // internal data
         private readonly Dictionary<string, int> _noteToMIDI;
         private int _currentInstrument;
         private int _currentVolume;
         private int _currentOctave;
         private float _currentBPM;
 
-        const int DEFAULT_INSTRUMENT = 1;
-        const int DEFAULT_VOLUME = 60;
-        const int DEFAULT_OCTAVE = 0;
-        const int DEFAULT_BPM = 120;
+        // defaults
+        private const int DEFAULT_INSTRUMENT = 0;
+        private const int DEFAULT_VOLUME = 60;
+        private const int DEFAULT_OCTAVE = 0;
+        private const int DEFAULT_BPM = 120;
 
-        const int MAX_VOLUME = 120;
-        const int MAX_OCTAVE = 4;
+        // max values
+        private const int MAX_VOLUME = 120;
+        private const int MAX_OCTAVE = 4;
 
-    MidiOut midiOut = new MidiOut(0);
+        // MIDI output object
+        private readonly MidiOut midiOut;
 
         public SoundReproduction()
         {
@@ -29,6 +33,7 @@ namespace TCP_TF
             _currentOctave = DEFAULT_OCTAVE;
 
             _noteToMIDI = InicializeMIDINoteDict();
+            midiOut = new MidiOut(0);
         }
 
         /// <summary>
@@ -102,6 +107,7 @@ namespace TCP_TF
             midiOut.Send(MidiMessage.StopNote(i, 0, 1).RawData);
           }
 
+          _currentVolume = DEFAULT_VOLUME;
           _currentOctave = DEFAULT_OCTAVE;
         }
 
@@ -110,16 +116,16 @@ namespace TCP_TF
         /// Aumenta uma oitava. Se não puder aumentar, volta à oitava default.
         /// </summary>
         public void IncreaseOneOctave()
+        {
+            if (_currentOctave < MAX_OCTAVE-1)
             {
-                if (_currentOctave < MAX_OCTAVE-1)
-                {
-                    _currentOctave++;
-                }
-                else
-                {
-                    _currentOctave = DEFAULT_OCTAVE;
-                }
+                _currentOctave++;
             }
+            else
+            {
+                _currentOctave = DEFAULT_OCTAVE;
+            }
+        }
 
         /// <summary>
         /// Inicializa o dicionário que mapeia cada nota para seu valor MIDI.
