@@ -18,8 +18,9 @@ namespace TCP_TF
         const int DEFAULT_BPM = 120;
 
         const int MAX_VOLUME = 120;
+        const int MAX_OCTAVE = 4;
 
-        MidiOut midiOut = new MidiOut(0);
+    MidiOut midiOut = new MidiOut(0);
 
         public SoundReproduction()
         {
@@ -96,9 +97,9 @@ namespace TCP_TF
         /// </summary>
         public void StopPlayback()
         {
-          for(int i = 21; i < 108; i++)
+          for(int i = _noteToMIDI["Dó"]; i < _noteToMIDI["Dó"] + (MAX_OCTAVE-1)*12; i++)
           {
-            midiOut.Send(MidiMessage.StopNote(i+(_currentOctave*12), 0, 1).RawData);
+            midiOut.Send(MidiMessage.StopNote(i, 0, 1).RawData);
           }
 
           _currentOctave = DEFAULT_OCTAVE;
@@ -110,7 +111,7 @@ namespace TCP_TF
         /// </summary>
         public void IncreaseOneOctave()
             {
-                if (_currentOctave <= 4)
+                if (_currentOctave < MAX_OCTAVE-1)
                 {
                     _currentOctave++;
                 }
