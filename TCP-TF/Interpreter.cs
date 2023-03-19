@@ -10,7 +10,7 @@ namespace TCP_TF
         private SoundReproduction _reproducer;
         private float _currentBPM;
         private int _currentInstrument;
-        private bool isRunning = true;
+        public bool isRunning;
 
         /// <summary>
         /// Construtor do interpretador.
@@ -20,6 +20,7 @@ namespace TCP_TF
             _charToMusicalNotes = InicializeMusicalNotesDict();
             _charToInstruments = InicializeInstrumentsDict();
             _reproducer = reproducer;
+            isRunning = true;
         }
 
         /// <summary>
@@ -29,8 +30,12 @@ namespace TCP_TF
         {
             for (int i = 0; i < text_characteres.Length; i++)
             {
+                if(isRunning == false) {
+                  isRunning = true;
+                  break;
+                }
                 char character = text_characteres[i];
-                if (CharCorrespondsToNote(character) && isRunning)
+                if (CharCorrespondsToNote(character))
                 {
                   float sleepTime = (1 / _currentBPM) * 60 * 1000;
                   _reproducer.PlayNote(_charToMusicalNotes[character]);

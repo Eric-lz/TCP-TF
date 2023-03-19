@@ -96,7 +96,12 @@ namespace TCP_TF
         /// </summary>
         public void StopPlayback()
         {
-          midiOut.Dispose();
+          for(int i = 21; i < 108; i++)
+          {
+            midiOut.Send(MidiMessage.StopNote(i+(_currentOctave*12), 0, 1).RawData);
+          }
+
+          _currentOctave = DEFAULT_OCTAVE;
         }
 
 
