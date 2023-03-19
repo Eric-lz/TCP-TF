@@ -6,6 +6,7 @@ namespace TCP_TF
 {
     public class SoundReproduction
     {
+        private readonly Dictionary<string, int> _noteToMIDI;
         private int _currentInstrument;
         private int _currentVolume;
         private int _currentOctave;
@@ -25,6 +26,8 @@ namespace TCP_TF
             _currentInstrument = DEFAULT_INSTRUMENT;
             _currentVolume = DEFAULT_VOLUME;
             _currentOctave = DEFAULT_OCTAVE;
+
+            _noteToMIDI = InicializeMIDINoteDict();
         }
 
         /// <summary>
@@ -78,84 +81,57 @@ namespace TCP_TF
         /// <summary>
         /// Toca a nota correspondente.
         /// </summary>
-        public void PlayNote(string note)
+        public async void PlayNote(string note)
         {
             float sleepTime = (1 / _currentBPM) * 60 * 1000;
 
-            switch (note)
-            {
-                case ("Lá"):
-                  midiOut.Send(MidiMessage.StartNote(69+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(69+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Si"):
-                  midiOut.Send(MidiMessage.StartNote(71+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(71+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Dó"):
-                  midiOut.Send(MidiMessage.StartNote(60+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(60+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Ré"):
-                  midiOut.Send(MidiMessage.StartNote(62+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(62+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Mi"):
-                  midiOut.Send(MidiMessage.StartNote(64+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(64+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Fá"):
-                  midiOut.Send(MidiMessage.StartNote(65+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(65+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                case ("Sol"):
-                  midiOut.Send(MidiMessage.StartNote(67+(_currentOctave*12), _currentVolume, 1).RawData);
-                  Thread.Sleep(Convert.ToInt32(Math.Round(sleepTime)));
-                  midiOut.Send(MidiMessage.StopNote(67+(_currentOctave*12), 0, 1).RawData);
-                break;
-
-                default: 
-                break;
-            }
+            midiOut.Send(MidiMessage.StartNote(_noteToMIDI[note]+(_currentOctave*12), _currentVolume, 1).RawData);
+            await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)) - 20);
+            midiOut.Send(MidiMessage.StopNote(_noteToMIDI[note]+(_currentOctave*12), 0, 1).RawData);
         }
+
+
+        /// <summary>
+        /// Para a reprodução
+        /// </summary>
+        public void StopPlayback()
+        {
+          midiOut.Dispose();
+        }
+
 
         /// <summary>
         /// Aumenta uma oitava. Se não puder aumentar, volta à oitava default.
         /// </summary>
         public void IncreaseOneOctave()
-        {
-            if (_currentOctave <= 4)
             {
-                _currentOctave++;
+                if (_currentOctave <= 4)
+                {
+                    _currentOctave++;
+                }
+                else
+                {
+                    _currentOctave = DEFAULT_OCTAVE;
+                }
             }
-            else
-            {
-                _currentOctave = DEFAULT_OCTAVE;
-            }
-        }
 
-        public enum Notes
+        /// <summary>
+        /// Inicializa o dicionário que mapeia cada nota para seu valor MIDI.
+        /// </summary>
+        private Dictionary<string, int> InicializeMIDINoteDict()
         {
-            Dó,
-            Ré,
-            Mi,
-            Fa,
-            Sol,
-            Lá,
-            Si
+          Dictionary<string, int> noteToMIDI = new Dictionary<string, int>
+                {
+                    {"Si", 71},
+                    {"Dó", 60},
+                    {"Lá", 69},
+                    {"Ré", 62},
+                    {"Mi", 64},
+                    {"Fá", 65},
+                    {"Sol", 67}
+                };
+          return noteToMIDI;
         }
-    }
+  }
 }
 

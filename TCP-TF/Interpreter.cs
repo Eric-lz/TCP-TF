@@ -10,6 +10,7 @@ namespace TCP_TF
         private SoundReproduction _reproducer;
         private float _currentBPM;
         private int _currentInstrument;
+        private bool isRunning = true;
 
         /// <summary>
         /// Construtor do interpretador.
@@ -24,14 +25,16 @@ namespace TCP_TF
         /// <summary>
         /// Recebe uma cadeia de caracteres e gera sons de acordo.
         /// </summary>
-        public void Interpret(char[] text_characteres)
+        public async void Interpret(char[] text_characteres)
         {
             for (int i = 0; i < text_characteres.Length; i++)
             {
                 char character = text_characteres[i];
-                if (CharCorrespondsToNote(character))
+                if (CharCorrespondsToNote(character) && isRunning)
                 {
-                    _reproducer.PlayNote(_charToMusicalNotes[character]);
+                  float sleepTime = (1 / _currentBPM) * 60 * 1000;
+                  _reproducer.PlayNote(_charToMusicalNotes[character]);
+                  await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
                 }
                 else if (character == ' ')
                 {
@@ -156,6 +159,15 @@ namespace TCP_TF
 
           _currentInstrument = instrument;
           _reproducer.SetInstrument(instrument);
+        }
+        
+        /// <summary>
+        /// Para a reprodução.
+        /// </summary> 
+        public void Stop()
+        {
+          _reproducer.StopPlayback();
+          isRunning = false;
         }
   }
 }

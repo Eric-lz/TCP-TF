@@ -33,5 +33,10 @@ namespace TCP_TF
       string fileContent = File.ReadAllText(fileName);
       text_Input.Text = fileContent;
     }
+
+    private void button_Stop_Click(object sender, EventArgs e)
+    {
+      _interpreter.Stop();
+    }
   }
 }

@@ -145,6 +145,7 @@
       this.button_Stop.TabIndex = 12;
       this.button_Stop.Text = "Stop";
       this.button_Stop.UseVisualStyleBackColor = true;
+      this.button_Stop.Click += new System.EventHandler(this.button_Stop_Click);
       // 
       // openFileDialog1
       // 
