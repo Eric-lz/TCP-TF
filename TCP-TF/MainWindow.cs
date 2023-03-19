@@ -45,5 +45,15 @@ namespace TCP_TF
     {
       _interpreter.Stop();
     }
-   }
+
+    private void button_SaveFile_Click(object sender, EventArgs e)
+    {
+      saveFileDialog1.ShowDialog();
+    }
+
+    private void saveFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
+    {
+      _reproducer.SaveFile(saveFileDialog1.FileName);
+    }
+  }
 }

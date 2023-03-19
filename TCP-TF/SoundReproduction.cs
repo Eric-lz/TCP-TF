@@ -132,6 +132,14 @@ namespace TCP_TF
     }
 
     /// <summary>
+    /// Salva a musica em arquivo .mid
+    /// </summary>
+    public void SaveFile(string filename)
+    {
+      
+    }
+
+    /// <summary>
     /// Inicializa o dicionário que mapeia cada nota para seu valor MIDI.
     /// </summary>
     private Dictionary<string, int> InicializeMIDINoteDict()

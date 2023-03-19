@@ -38,6 +38,8 @@
       this.label_Instrument = new System.Windows.Forms.Label();
       this.button_Stop = new System.Windows.Forms.Button();
       this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+      this.button_SaveFile = new System.Windows.Forms.Button();
+      this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
       ((System.ComponentModel.ISupportInitialize)(this.num_BPM)).BeginInit();
       this.SuspendLayout();
       // 
@@ -158,11 +160,27 @@
       this.openFileDialog1.FileName = "openFileDialog1";
       this.openFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.openFileDialog1_FileOk);
       // 
+      // button_SaveFile
+      // 
+      this.button_SaveFile.Font = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+      this.button_SaveFile.Location = new System.Drawing.Point(478, 390);
+      this.button_SaveFile.Name = "button_SaveFile";
+      this.button_SaveFile.Size = new System.Drawing.Size(80, 43);
+      this.button_SaveFile.TabIndex = 13;
+      this.button_SaveFile.Text = "Save";
+      this.button_SaveFile.UseVisualStyleBackColor = true;
+      this.button_SaveFile.Click += new System.EventHandler(this.button_SaveFile_Click);
+      // 
+      // saveFileDialog1
+      // 
+      this.saveFileDialog1.FileOk += new System.ComponentModel.CancelEventHandler(this.saveFileDialog1_FileOk);
+      // 
       // MainWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.ClientSize = new System.Drawing.Size(742, 447);
+      this.Controls.Add(this.button_SaveFile);
       this.Controls.Add(this.button_Stop);
       this.Controls.Add(this.label_Instrument);
       this.Controls.Add(this.list_Instrument);
@@ -194,5 +212,7 @@
     private Label label_Instrument;
     private Button button_Stop;
     private OpenFileDialog openFileDialog1;
+    private Button button_SaveFile;
+    private SaveFileDialog saveFileDialog1;
   }
 }
