@@ -11,6 +11,7 @@ namespace TCP_TF
         private float _currentBPM;
         private int _currentInstrument;
         private bool isRunning;
+        private bool stopSignal;
 
         /// <summary>
         /// Construtor do interpretador.
@@ -20,7 +21,6 @@ namespace TCP_TF
             _charToMusicalNotes = InicializeMusicalNotesDict();
             _charToInstruments = InicializeInstrumentsDict();
             _reproducer = reproducer;
-            isRunning = true;
         }
 
         /// <summary>
@@ -28,13 +28,20 @@ namespace TCP_TF
         /// </summary>
         public async void Interpret(char[] text_characteres)
         {
+            // flag que indica se está reproduzindo 
+            isRunning = true;
+
             for (int i = 0; i < text_characteres.Length; i++)
             {
-                if(isRunning == false) {
-                  isRunning = true;
+                char character = text_characteres[i];
+
+                if(character == '\0' || stopSignal == true)
+                {
+                  _reproducer.StopPlayback();
+                  isRunning = false;
+                  stopSignal = false;
                   break;
                 }
-                char character = text_characteres[i];
                 if (CharCorrespondsToNote(character))
                 {
                   float sleepTime = (1 / _currentBPM) * 60 * 1000;
@@ -171,8 +178,14 @@ namespace TCP_TF
         /// </summary> 
         public void Stop()
         {
+          // envia sinal de parada para o reproducer
           _reproducer.StopPlayback();
-          isRunning = false;
+
+          // se interpretador estiver rodando, envia sinal de parada
+          if(isRunning)
+          {
+            stopSignal = true;
+          }
         }
   }
 }

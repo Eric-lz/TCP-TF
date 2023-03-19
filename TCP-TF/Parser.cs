@@ -12,7 +12,8 @@
         /// </summary>
         public char[] Parse(string text)
         {
-            return text.ToCharArray();
+          text += '\0';  // adiciona null terminator ao fim do texto (sinal de parada)  
+          return text.ToCharArray();
         }
     }
 }
