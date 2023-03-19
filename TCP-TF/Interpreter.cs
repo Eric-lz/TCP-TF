@@ -10,7 +10,7 @@ namespace TCP_TF
         private SoundReproduction _reproducer;
         private float _currentBPM;
         private int _currentInstrument;
-        public bool isRunning;
+        private bool isRunning;
 
         /// <summary>
         /// Construtor do interpretador.
