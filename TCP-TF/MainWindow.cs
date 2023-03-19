@@ -17,6 +17,7 @@ namespace TCP_TF
       list_Instrument.SelectedIndex = 0;
     }
 
+    // Botão que inicia a execução
     private void button_Play_Click(object sender, EventArgs e)
     {
       string text = text_Input.Text;  // ler texto
@@ -25,11 +26,13 @@ namespace TCP_TF
       _interpreter.Interpret(_parser.Parse(text));
     }
 
+    // Botão de seleção de arquivo
     private void button_Browse_Click(object sender, EventArgs e)
     {
       openFileDialog1.ShowDialog();
     }
 
+    // Abre janela de seleção de arquivo de entrada
     private void openFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
     {
       string fileName = openFileDialog1.FileName;
@@ -37,6 +40,7 @@ namespace TCP_TF
       text_Input.Text = fileContent;
     }
 
+    // Botão de parar execução
     private void button_Stop_Click(object sender, EventArgs e)
     {
       _interpreter.Stop();

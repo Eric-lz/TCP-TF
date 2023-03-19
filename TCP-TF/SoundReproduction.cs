@@ -89,10 +89,12 @@ namespace TCP_TF
     /// </summary>
     public async void PlayNote(string note)
     {
+      // calculo do tempo de espera baseado no BPM selecionado
       float sleepTime = (1 / _currentBPM) * 60 * 1000;
 
+      // toca a nota, espera o delay, para a nota
       midiOut.Send(MidiMessage.StartNote(_noteToMIDI[note]+(_currentOctave*12), _currentVolume, 1).RawData);
-      await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)) - 20);
+      await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)) - 20);  // subtrai 20 ms para garantir que próxima nota será tocada
       midiOut.Send(MidiMessage.StopNote(_noteToMIDI[note]+(_currentOctave*12), 0, 1).RawData);
     }
 
@@ -107,7 +109,8 @@ namespace TCP_TF
       {
         midiOut.Send(MidiMessage.StopNote(i, 0, 1).RawData);
       }
-
+      
+      // retorna volume e oitava para valores padrões
       _currentVolume = DEFAULT_VOLUME;
       _currentOctave = DEFAULT_OCTAVE;
     }

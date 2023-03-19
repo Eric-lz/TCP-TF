@@ -33,11 +33,13 @@ namespace TCP_TF
       // flag que indica se está reproduzindo 
       isRunning = true;
 
+      // laço de leitura char por char
       for (int i = 0; i < text_characteres.Length; i++)
       {
         // read char by char
         char character = text_characteres[i];
 
+        // se for null terminator OU receber sinal de parada, para a reprodução
         if(character == '\0' || stopSignal == true)
         {
           _reproducer.StopPlayback();
