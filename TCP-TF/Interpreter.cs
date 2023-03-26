@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Metrics;
+﻿using NAudio.Midi;
+using System.Diagnostics.Metrics;
 
 namespace TCP_TF
 {
@@ -8,7 +9,7 @@ namespace TCP_TF
     private readonly Dictionary<char, string> _charToMusicalNotes;
     private readonly Dictionary<char, int> _charToInstruments;
     private readonly Dictionary<string, int> _instrumentToMIDI;
-    private SoundReproduction _reproducer;
+    private readonly SoundReproduction _reproducer;
     private float _currentBPM;
     private int _currentInstrument;
     private bool isRunning;
@@ -84,7 +85,7 @@ namespace TCP_TF
     /// <summary>
     /// Verifica se o caractere corresponde a uma nota.
     /// </summary>
-    private bool CharCorrespondsToNote(char character)
+    private static bool CharCorrespondsToNote(char character)
     {
       return (character >= 'A' && character <= 'G');
     }
@@ -92,9 +93,9 @@ namespace TCP_TF
     /// <summary>
     /// Verifica se o caractere corresponde a um instrumento.
     /// </summary>
-    private bool CharCorrespondsToInstrument(char character)
+    private static bool CharCorrespondsToInstrument(char character)
     {
-      return (character == '!' || character == '\n' || character == ';' || character == ',' ||
+      return (character == '!' || character == '\n' || character == '\r' || character == ';' || character == ',' ||
       char.ToLower(character) == 'i' || char.ToLower(character) == 'o' || char.ToLower(character) == 'u');
     }
 
@@ -131,12 +132,119 @@ namespace TCP_TF
       }
     }
 
+
+    
+
+
+    /// <summary>
+    /// Salva a musica em arquivo .mid
+    /// </summary>
+    public void SaveFile(string filename, char[] text_characteres)
+    {
+      const int MidiFileType = 0;
+      const int TicksPerQuarterNote = 120;
+
+      const int TrackNumber = 0;
+      const int ChannelNumber = 1;
+      int _currentOctave = 0;
+
+      long absoluteTime = 0;
+
+      var collection = new MidiEventCollection(MidiFileType, TicksPerQuarterNote);
+
+      collection.AddEvent(new TextEvent("Note Stream", MetaEventType.TextEvent, absoluteTime), TrackNumber);
+      ++absoluteTime;
+      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / _currentBPM), absoluteTime), TrackNumber);
+
+      int patchNumber = 0;  // instrument
+
+      collection.AddEvent(new PatchChangeEvent(0, ChannelNumber, patchNumber), TrackNumber);
+
+      int NoteVelocity = 60;
+      const int NoteDuration = 3 * TicksPerQuarterNote / 4;
+      const long SpaceBetweenNotes = TicksPerQuarterNote;
+
+      char prev_character = '\0';
+
+      foreach (var character in text_characteres)
+      {
+        if (character == '\0')
+        {
+          collection.PrepareForExport();
+          break;
+        }
+        else if (CharCorrespondsToNote(character))
+        {
+          int note = _charToMIDI[character] + (_currentOctave * 12);
+          collection.AddEvent(new NoteOnEvent(absoluteTime, ChannelNumber, note, NoteVelocity, NoteDuration), TrackNumber);
+          collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, ChannelNumber, MidiCommandCode.NoteOff, note, 0), TrackNumber);
+          absoluteTime += SpaceBetweenNotes;
+        }
+        else if (character == ' ')
+        {
+          if (NoteVelocity < 120)
+          {
+            NoteVelocity += 30;
+          }
+          else
+          {
+            NoteVelocity = 60;
+          }
+        }
+        else if (CharCorrespondsToInstrument(character))
+        {
+          _currentInstrument = _charToInstruments[character];
+          collection.AddEvent(new PatchChangeEvent(absoluteTime, ChannelNumber, _currentInstrument), TrackNumber);
+        }
+        else if (char.IsDigit(character))
+        {
+          collection.AddEvent(new PatchChangeEvent(absoluteTime, ChannelNumber, _currentInstrument + (int)char.GetNumericValue(character)), TrackNumber);
+        }
+        else if (character == '?' || character == '.')
+        {
+          if (_currentOctave < 3)
+          {
+            _currentOctave++;
+          }
+          else
+          {
+            _currentOctave = 0;
+          }
+        }
+        else
+        { 
+          if (CharCorrespondsToNote(prev_character))
+          {
+            int note = _charToMIDI[character] + (_currentOctave * 12);
+            collection.AddEvent(new NoteOnEvent(absoluteTime, ChannelNumber, note, NoteVelocity, NoteDuration), TrackNumber);
+            collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, ChannelNumber, MidiCommandCode.NoteOff, note, 0), TrackNumber);
+            absoluteTime += SpaceBetweenNotes;
+          }
+        }
+
+        prev_character = character;
+      }
+
+      MidiFile.Export(filename, collection);
+    }
+
+    private Dictionary<char, int> _charToMIDI = new Dictionary<char, int>()
+    {
+      {'C', 60},
+      {'D', 62},
+      {'E', 64},
+      {'F', 65},
+      {'G', 67},
+      {'A', 69},
+      {'B', 71}
+    };
+
     /// <summary>
     /// Inicializa o dicionário que mapeia cada caractere para uma nota.
     /// </summary>
-    private Dictionary<char, string> InicializeMusicalNotesDict()
+    private static Dictionary<char, string> InicializeMusicalNotesDict()
     {
-      Dictionary<char, string> charToMusicalNotes = new Dictionary<char, string>
+      Dictionary<char, string> charToMusicalNotes = new()
       {
         {'A', "Lá"},
         {'B', "Si"},
@@ -152,9 +260,9 @@ namespace TCP_TF
     /// <summary>
     /// Inicializa o dicionário que mapeia cada caractere para um instrumento.
     /// </summary>
-    private Dictionary<char, int> InicializeInstrumentsDict()
+    private static Dictionary<char, int> InicializeInstrumentsDict()
     {
-      Dictionary<char, int> charToInstruments = new Dictionary<char, int>
+      Dictionary<char, int> charToInstruments = new()
       {
         {'!', 114},
         {'O', 7},
@@ -163,6 +271,7 @@ namespace TCP_TF
         {'i', 7},
         {'U', 7},
         {'u', 7},
+        {'\r', 15},
         {'\n', 15},
         {';', 76},
         {',', 20}
@@ -173,9 +282,9 @@ namespace TCP_TF
     /// <summary>
     /// Inicializa o dicionário que mapeia cada instrumento para seu valor MIDI.
     /// </summary>
-    private Dictionary<string, int> InicializeNameToMIDIDict()
+    private static Dictionary<string, int> InicializeNameToMIDIDict()
     {
-      Dictionary<string, int> instrumentToMIDI = new Dictionary<string, int>
+      Dictionary<string, int> instrumentToMIDI = new()
       {
         {"Piano", 0},
         {"Tubular Bell", 14},

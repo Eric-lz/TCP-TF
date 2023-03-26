@@ -31,6 +31,7 @@ namespace TCP_TF
       _currentInstrument = DEFAULT_INSTRUMENT;
       _currentVolume = DEFAULT_VOLUME;
       _currentOctave = DEFAULT_OCTAVE;
+      _currentBPM = DEFAULT_BPM;
 
       _noteToMIDI = InicializeMIDINoteDict();
       midiOut = new MidiOut(0);
@@ -131,28 +132,21 @@ namespace TCP_TF
       }
     }
 
-    /// <summary>
-    /// Salva a musica em arquivo .mid
-    /// </summary>
-    public void SaveFile(string filename)
-    {
-      
-    }
 
     /// <summary>
     /// Inicializa o dicionário que mapeia cada nota para seu valor MIDI.
     /// </summary>
-    private Dictionary<string, int> InicializeMIDINoteDict()
+    private static Dictionary<string, int> InicializeMIDINoteDict()
     {
-      Dictionary<string, int> noteToMIDI = new Dictionary<string, int>
+      Dictionary<string, int> noteToMIDI = new()
       {
-        {"Si", 71},
         {"Dó", 60},
-        {"Lá", 69},
         {"Ré", 62},
         {"Mi", 64},
         {"Fá", 65},
-        {"Sol", 67}
+        {"Sol", 67},
+        {"Lá", 69},
+        {"Si", 71}
       };
       return noteToMIDI;
     }

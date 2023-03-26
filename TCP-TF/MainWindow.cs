@@ -1,3 +1,5 @@
+using static System.Net.Mime.MediaTypeNames;
+
 namespace TCP_TF
 {
   public partial class MainWindow : Form
@@ -23,7 +25,7 @@ namespace TCP_TF
       string text = text_Input.Text;  // ler texto
       _interpreter.SetBPM((int)num_BPM.Value);
       _interpreter.SetInstrument(list_Instrument.GetItemText(list_Instrument.SelectedItem));
-      _interpreter.Interpret(_parser.Parse(text));
+      _interpreter.Interpret(Parser.Parse(text));
     }
 
     // Botão de seleção de arquivo
@@ -53,7 +55,10 @@ namespace TCP_TF
 
     private void saveFileDialog1_FileOk(object sender, System.ComponentModel.CancelEventArgs e)
     {
-      _reproducer.SaveFile(saveFileDialog1.FileName);
+      string text = text_Input.Text;  // ler texto
+      _interpreter.SetBPM((int)num_BPM.Value);
+      _interpreter.SetInstrument(list_Instrument.GetItemText(list_Instrument.SelectedItem));
+      _interpreter.SaveFile(saveFileDialog1.FileName, Parser.Parse(text));
     }
   }
 }
