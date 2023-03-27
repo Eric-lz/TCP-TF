@@ -5,82 +5,288 @@ namespace TCP_TF
 {
   public class Interpreter
   {
-
-    private readonly Dictionary<char, string> _charToMusicalNotes;
+    // Dictionaries
     private readonly Dictionary<char, int> _charToInstruments;
+    private readonly Dictionary<char, int> _charToMIDI;
     private readonly Dictionary<string, int> _instrumentToMIDI;
-    private readonly SoundReproduction _reproducer;
-    private float _currentBPM;
-    private int _currentInstrument;
+
+    // MIDI output object
+    private readonly MidiOut midiOut;
+
+    // Constantes
+    const int NOTES_IN_OCTAVE = 12;
+    const int MAX_OCTAVE = 3;
+    const int DEFAULT_VOLUME = 60;
+    const int DEFAULT_OCTAVE = 0;
+    const int DEFAULT_INSTRUMENT = 0;
+    const int MIDI_FILE_TYPE = 0;
+    const int TRACK_NUMBER = 0;
+    const int CHANNEL_NUMBER = 1;
+
+    // Flag que indica se reprodutor está executando
     private bool isRunning;
-    private bool stopSignal;
+
+    // Notas
+    private int instrument;
+    private int bpm;
+    private int octave;
+    private int volume;
+
+    // getter e setter do BPM e do instrumento
+    public int BPM
+    {
+      get => bpm;
+      set => bpm = value;
+    }
+    public string Instrument
+    {
+      set => instrument = _instrumentToMIDI[value];
+    }
 
     /// <summary>
     /// Construtor do interpretador.
     /// </summary>
-    public Interpreter(SoundReproduction reproducer)
+    public Interpreter()
     {
-      _charToMusicalNotes = InicializeMusicalNotesDict();
-      _charToInstruments = InicializeInstrumentsDict();
-      _instrumentToMIDI = InicializeNameToMIDIDict();
-      _reproducer = reproducer;
+      // dictionaries
+      _charToInstruments = InitCharToInstrumentDict();
+      _charToMIDI = InitCharToMidiDict();
+      _instrumentToMIDI = InitInstrumentToMidiDict();
+
+      // MIDI output
+      midiOut = new MidiOut(0);
+
+      // notas
+      octave = DEFAULT_OCTAVE;
+      volume = DEFAULT_VOLUME;
+      instrument = DEFAULT_INSTRUMENT;
     }
 
     /// <summary>
-    /// Recebe uma cadeia de caracteres e gera sons de acordo.
+    /// Recebe um texto, converte para musica e inicia a reprodução
     /// </summary>
-    public async void Interpret(char[] text_characteres)
+    public void Play(string text)
     {
-      // flag que indica se está reproduzindo 
-      isRunning = true;
-
-      // laço de leitura char por char
-      for (int i = 0; i < text_characteres.Length; i++)
+      // inicia reprodução apenas se não estiver reproduzindo
+      if (!isRunning)
       {
-        // read char by char
-        char character = text_characteres[i];
+        var commands = Parse(text);
+        isRunning = true;
+        PlayCommands(commands);
+      }
+    }
 
-        // se for null terminator OU receber sinal de parada, para a reprodução
-        if(character == '\0' || stopSignal == true)
+    /// <summary>
+    /// Para a reprodução
+    /// </summary>
+    public void Stop()
+    {
+      // flag de parada
+      isRunning = false;
+
+      // envia sinal de parada para todas as notas possíveis individualmente
+      for (int i = 0; i < 127; i++)
+      {
+        midiOut.Send(MidiMessage.StopNote(i, 0, 1).RawData);
+      }
+
+      // retorna volume e oitava para valores padrões
+      volume = DEFAULT_VOLUME;
+      octave = DEFAULT_OCTAVE;
+    }
+
+    /// <summary>
+    /// Recebe um texto, converte para musica e salva em arquivo MIDI
+    /// </summary>
+    public void SaveFile(string filename, string text)
+    {
+      var commands = Parse(text);
+      WriteFile(filename, commands);
+    }
+
+    /// <summary>
+    /// Recebe o texto de entrada e converte em comandos para o reprodutor.
+    /// </summary>
+    private List<KeyValuePair<string, int>> Parse(string text)
+    {
+      // adiciona null terminator ao fim do texto (sinal de parada)
+      text += '\0';
+      text.ToCharArray();
+
+      // lista de comandos
+      List<KeyValuePair<string, int>> commands = new();
+      char prev_character = '\0';
+
+      // inicializa lista com o primeiro instrumento
+      commands.Add(new KeyValuePair<string, int>("Instrument", instrument));
+
+      foreach (var character in text)
+      {
+        // null terminator, chegou no fim do texto
+        if (character == '\0')
         {
-          _reproducer.StopPlayback();
-          isRunning = false;
-          stopSignal = false;
+          commands.Add(new KeyValuePair<string, int>("Stop", 0));
           break;
         }
 
-        if (CharCorrespondsToNote(character))
+        // char corresponde a nota
+        else if (CharCorrespondsToNote(character))
         {
-          float sleepTime = (1 / _currentBPM) * 60 * 1000;
-          _reproducer.PlayNote(_charToMusicalNotes[character]);
-          await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
+          int note = _charToMIDI[character] + (octave * NOTES_IN_OCTAVE);
+          commands.Add(new KeyValuePair<string, int>("Note", note));
         }
+
+        // char corresponde a aumentar volume
         else if (character == ' ')
         {
-          _reproducer.SetVolume(_reproducer.GetVolume() + 30);
+          if (volume < 120) volume += 30;
+          else volume = 60;
+          commands.Add(new KeyValuePair<string, int>("Volume", volume));
         }
+
+        // char corresponde a alterar instrumento
         else if (CharCorrespondsToInstrument(character))
         {
-          _reproducer.SetInstrument(_charToInstruments[character]);
+          instrument = _charToInstruments[character];
+          commands.Add(new KeyValuePair<string, int>("Instrument", instrument));
         }
+
+        // char corresponde a alterar instrumento (soma do atual + digito)
         else if (char.IsDigit(character))
         {
-          _reproducer.SetInstrument(_reproducer.GetInstrument() + (int)char.GetNumericValue(character));
+          instrument += (int)char.GetNumericValue(character);
+          commands.Add(new KeyValuePair<string, int>("Instrument", instrument));
         }
+
+        // char corresponde a aumentar oitava
         else if (character == '?' || character == '.')
         {
-          _reproducer.IncreaseOneOctave();
+          if (octave < MAX_OCTAVE) octave++;
+          else octave = 0;
         }
-        else if (i > 0)
+
+        // char anterior era nota
+        else if (CharCorrespondsToNote(prev_character))
         {
-          char prev_character = text_characteres[i - 1];
-          if (CharCorrespondsToNote(prev_character))
+          int note = _charToMIDI[character] + (octave * NOTES_IN_OCTAVE);
+          commands.Add(new KeyValuePair<string, int>("Note", note));
+        }
+
+        prev_character = character;
+      }
+
+      return commands;
+    }
+
+    /// <summary>
+    /// Recebe uma lista de comandos e salva como musica em arquivo formato MIDI.
+    /// </summary>
+    private void WriteFile(string filename, List<KeyValuePair<string, int>> commands)
+    {
+      // tempo de duração da nota
+      int NoteDuration = 3 * bpm / 4;
+
+      // volume a ser tocado
+      int w_volume = DEFAULT_VOLUME;
+
+      // tempo
+      long absoluteTime = 0;
+
+      // cria uma collection de eventos MIDI
+      var collection = new MidiEventCollection(MIDI_FILE_TYPE, bpm);
+
+      // inicializa collection
+      collection.AddEvent(new TextEvent("Note Stream", MetaEventType.TextEvent, absoluteTime), TRACK_NUMBER);
+      absoluteTime++;
+      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / bpm), absoluteTime), TRACK_NUMBER);
+      absoluteTime++;
+
+      // preenche collection
+      foreach (KeyValuePair<string, int> command in commands)
+      {
+        switch (command.Key)
+        {
+          case "Note":
+            collection.AddEvent(new NoteOnEvent(absoluteTime, CHANNEL_NUMBER, command.Value, w_volume, NoteDuration), TRACK_NUMBER);
+            collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, CHANNEL_NUMBER, MidiCommandCode.NoteOff, command.Value, 0), TRACK_NUMBER);
+            absoluteTime += bpm;
+            break;
+
+          case "Instrument":
+            collection.AddEvent(new PatchChangeEvent(absoluteTime, CHANNEL_NUMBER, command.Value), TRACK_NUMBER);
+            break;
+
+          case "Volume":
+            w_volume = command.Value;
+            break;
+
+          case "Stop":
+            collection.PrepareForExport();
+            break;
+        }
+      }
+
+      // exporta arquivo .mid
+      MidiFile.Export(filename, collection);
+    }
+
+    /// <summary>
+    /// Recebe uma lista de comandos e reproduz.
+    /// </summary>
+    private async void PlayCommands(List<KeyValuePair<string, int>> commands)
+    {
+      int w_volume = DEFAULT_VOLUME;
+      int w_instrument = instrument;
+
+      float sleepTime = (1 / (float)bpm) * 60 * 1000;
+
+      foreach (KeyValuePair<string, int> command in commands)
+      {
+        if (isRunning)
+        {
+          switch (command.Key)
           {
-            _reproducer.PlayNote(_charToMusicalNotes[prev_character]);
+            case "Note":
+              PlayNote(command.Value, w_volume, w_instrument);
+              await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
+              break;
+
+            case "Instrument":
+              w_instrument = command.Value;
+              break;
+
+            case "Volume":
+              w_volume = command.Value;
+              break;
+
+            case "Stop":
+              Stop();
+              break;
           }
         }
       }
     }
+
+    /// <summary>
+    /// Toca a nota correspondente.
+    /// </summary>
+    private async void PlayNote(int note, int volume, int instrument)
+    {
+      // tempo de duração da nota
+      int NoteDuration = 3 * bpm / 4;
+
+      // calcula tempo de espera baseado no BPM selecionado
+      float sleepTime = (1 / (float)bpm) * 60 * 1000;
+      sleepTime = sleepTime - NoteDuration;
+
+      // set instrument
+      midiOut.Send(new PatchChangeEvent(0, 1, instrument).GetAsShortMessage());
+
+      // toca a nota, espera o delay, para a nota
+      midiOut.Send(MidiMessage.StartNote(note, volume, 1).RawData);
+      await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
+      midiOut.Send(MidiMessage.StopNote(note, 0, 1).RawData);
+    }    
 
     /// <summary>
     /// Verifica se o caractere corresponde a uma nota.
@@ -99,168 +305,26 @@ namespace TCP_TF
       char.ToLower(character) == 'i' || char.ToLower(character) == 'o' || char.ToLower(character) == 'u');
     }
 
-    /// <summary>
-    /// Setter do BPM.
-    /// </summary>
-    public void SetBPM(int bpm)
-    {
-      _currentBPM = bpm;
-      _reproducer.SetBPM(bpm);
-    }
 
-    /// <summary>
-    /// Setter do Instrumento.
-    /// </summary>
-    public void SetInstrument(string input)
+    private static Dictionary<char, int> InitCharToMidiDict()
     {
-      _currentInstrument = _instrumentToMIDI[input];
-      _reproducer.SetInstrument(_currentInstrument);
-    }
-        
-    /// <summary>
-    /// Para a reprodução.
-    /// </summary> 
-    public void Stop()
-    {
-      // envia sinal de parada para o reproducer
-      _reproducer.StopPlayback();
-
-      // se interpretador estiver rodando, envia sinal de parada
-      if(isRunning)
+      Dictionary<char, int> charToMIDI = new()
       {
-        stopSignal = true;
-      }
-    }
-
-
-    
-
-
-    /// <summary>
-    /// Salva a musica em arquivo .mid
-    /// </summary>
-    public void SaveFile(string filename, char[] text_characteres)
-    {
-      const int MidiFileType = 0;
-      const int TicksPerQuarterNote = 120;
-
-      const int TrackNumber = 0;
-      const int ChannelNumber = 1;
-      int _currentOctave = 0;
-
-      long absoluteTime = 0;
-
-      var collection = new MidiEventCollection(MidiFileType, TicksPerQuarterNote);
-
-      collection.AddEvent(new TextEvent("Note Stream", MetaEventType.TextEvent, absoluteTime), TrackNumber);
-      ++absoluteTime;
-      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / _currentBPM), absoluteTime), TrackNumber);
-
-      int patchNumber = 0;  // instrument
-
-      collection.AddEvent(new PatchChangeEvent(0, ChannelNumber, patchNumber), TrackNumber);
-
-      int NoteVelocity = 60;
-      const int NoteDuration = 3 * TicksPerQuarterNote / 4;
-      const long SpaceBetweenNotes = TicksPerQuarterNote;
-
-      char prev_character = '\0';
-
-      foreach (var character in text_characteres)
-      {
-        if (character == '\0')
-        {
-          collection.PrepareForExport();
-          break;
-        }
-        else if (CharCorrespondsToNote(character))
-        {
-          int note = _charToMIDI[character] + (_currentOctave * 12);
-          collection.AddEvent(new NoteOnEvent(absoluteTime, ChannelNumber, note, NoteVelocity, NoteDuration), TrackNumber);
-          collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, ChannelNumber, MidiCommandCode.NoteOff, note, 0), TrackNumber);
-          absoluteTime += SpaceBetweenNotes;
-        }
-        else if (character == ' ')
-        {
-          if (NoteVelocity < 120)
-          {
-            NoteVelocity += 30;
-          }
-          else
-          {
-            NoteVelocity = 60;
-          }
-        }
-        else if (CharCorrespondsToInstrument(character))
-        {
-          _currentInstrument = _charToInstruments[character];
-          collection.AddEvent(new PatchChangeEvent(absoluteTime, ChannelNumber, _currentInstrument), TrackNumber);
-        }
-        else if (char.IsDigit(character))
-        {
-          collection.AddEvent(new PatchChangeEvent(absoluteTime, ChannelNumber, _currentInstrument + (int)char.GetNumericValue(character)), TrackNumber);
-        }
-        else if (character == '?' || character == '.')
-        {
-          if (_currentOctave < 3)
-          {
-            _currentOctave++;
-          }
-          else
-          {
-            _currentOctave = 0;
-          }
-        }
-        else
-        { 
-          if (CharCorrespondsToNote(prev_character))
-          {
-            int note = _charToMIDI[character] + (_currentOctave * 12);
-            collection.AddEvent(new NoteOnEvent(absoluteTime, ChannelNumber, note, NoteVelocity, NoteDuration), TrackNumber);
-            collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, ChannelNumber, MidiCommandCode.NoteOff, note, 0), TrackNumber);
-            absoluteTime += SpaceBetweenNotes;
-          }
-        }
-
-        prev_character = character;
-      }
-
-      MidiFile.Export(filename, collection);
-    }
-
-    private Dictionary<char, int> _charToMIDI = new Dictionary<char, int>()
-    {
-      {'C', 60},
-      {'D', 62},
-      {'E', 64},
-      {'F', 65},
-      {'G', 67},
-      {'A', 69},
-      {'B', 71}
-    };
-
-    /// <summary>
-    /// Inicializa o dicionário que mapeia cada caractere para uma nota.
-    /// </summary>
-    private static Dictionary<char, string> InicializeMusicalNotesDict()
-    {
-      Dictionary<char, string> charToMusicalNotes = new()
-      {
-        {'A', "Lá"},
-        {'B', "Si"},
-        {'C', "Dó"},
-        {'D', "Ré"},
-        {'E', "Mi"},
-        {'F', "Fá"},
-        {'G', "Sol"}
+        {'C', 60},
+        {'D', 62},
+        {'E', 64},
+        {'F', 65},
+        {'G', 67},
+        {'A', 69},
+        {'B', 71}
       };
-      return charToMusicalNotes;
+      return charToMIDI;
     }
 
     /// <summary>
     /// Inicializa o dicionário que mapeia cada caractere para um instrumento.
     /// </summary>
-    private static Dictionary<char, int> InicializeInstrumentsDict()
+    private static Dictionary<char, int> InitCharToInstrumentDict()
     {
       Dictionary<char, int> charToInstruments = new()
       {
@@ -282,7 +346,7 @@ namespace TCP_TF
     /// <summary>
     /// Inicializa o dicionário que mapeia cada instrumento para seu valor MIDI.
     /// </summary>
-    private static Dictionary<string, int> InicializeNameToMIDIDict()
+    private static Dictionary<string, int> InitInstrumentToMidiDict()
     {
       Dictionary<string, int> instrumentToMIDI = new()
       {

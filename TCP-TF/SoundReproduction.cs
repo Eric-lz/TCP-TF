@@ -33,7 +33,7 @@ namespace TCP_TF
       _currentOctave = DEFAULT_OCTAVE;
       _currentBPM = DEFAULT_BPM;
 
-      _noteToMIDI = InicializeMIDINoteDict();
+      _noteToMIDI = InitMIDINoteDict();
       midiOut = new MidiOut(0);
     }
 
@@ -85,20 +85,16 @@ namespace TCP_TF
       return _currentVolume;
     }
 
-    /// <summary>
-    /// Toca a nota correspondente.
-    /// </summary>
-    public async void PlayNote(string note)
+    public async void PlayNote(int note)
     {
       // calculo do tempo de espera baseado no BPM selecionado
       float sleepTime = (1 / _currentBPM) * 60 * 1000;
 
       // toca a nota, espera o delay, para a nota
-      midiOut.Send(MidiMessage.StartNote(_noteToMIDI[note]+(_currentOctave*12), _currentVolume, 1).RawData);
+      midiOut.Send(MidiMessage.StartNote(note, _currentVolume, 1).RawData);
       await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)) - 20);  // subtrai 20 ms para garantir que próxima nota será tocada
-      midiOut.Send(MidiMessage.StopNote(_noteToMIDI[note]+(_currentOctave*12), 0, 1).RawData);
+      midiOut.Send(MidiMessage.StopNote(note, 0, 1).RawData);
     }
-
 
     /// <summary>
     /// Para a reprodução
@@ -115,7 +111,6 @@ namespace TCP_TF
       _currentVolume = DEFAULT_VOLUME;
       _currentOctave = DEFAULT_OCTAVE;
     }
-
 
     /// <summary>
     /// Aumenta uma oitava. Se não puder aumentar, volta à oitava default.
@@ -136,7 +131,7 @@ namespace TCP_TF
     /// <summary>
     /// Inicializa o dicionário que mapeia cada nota para seu valor MIDI.
     /// </summary>
-    private static Dictionary<string, int> InicializeMIDINoteDict()
+    private static Dictionary<string, int> InitMIDINoteDict()
     {
       Dictionary<string, int> noteToMIDI = new()
       {
