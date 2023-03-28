@@ -35,12 +35,9 @@ namespace TCP_TF
     /// </summary>
     public async void PlayNote(int note, int volume, int instrument, int bpm)
     {
-      // tempo de duração da nota
-      int NoteDuration = 3 * bpm / 4;
-
       // calcula tempo de espera baseado no BPM selecionado
       float sleepTime = (1 / (float)bpm) * 60 * 1000;
-      sleepTime = sleepTime - NoteDuration;
+      sleepTime -= 20; // subtrai 20 ms para garantir que próxima nota será tocada
 
       // set instrument
       midiOut.Send(new PatchChangeEvent(0, 1, instrument).GetAsShortMessage());
@@ -123,8 +120,6 @@ namespace TCP_TF
       // inicializa collection
       collection.AddEvent(new TextEvent("Note Stream", MetaEventType.TextEvent, absoluteTime), TRACK_NUMBER);
       absoluteTime++;
-      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / bpm), absoluteTime), TRACK_NUMBER);
-      absoluteTime++;
 
       // preenche collection
       foreach (KeyValuePair<string, int> midiCommand in midiCommands)
@@ -147,6 +142,8 @@ namespace TCP_TF
 
           case "BPM":
             bpm = midiCommand.Value;
+            NoteDuration = 3 * bpm / 4;
+            collection = new MidiEventCollection(MIDI_FILE_TYPE, bpm);
             collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / bpm), absoluteTime), TRACK_NUMBER);
             break;
 
