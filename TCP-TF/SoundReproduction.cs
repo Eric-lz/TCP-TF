@@ -22,6 +22,9 @@ namespace TCP_TF
     const int CHANNEL_NUMBER = 1;
     const int DEVICE_NO = 0;
 
+    /// <summary>
+    /// Construtor do reprodutor de som. Instancia o objeto MidiOut no primeiro dispositivo de saída
+    /// </summary>
     public SoundReproduction()
     {
       // MIDI output
@@ -31,8 +34,12 @@ namespace TCP_TF
     }
 
     /// <summary>
-    /// Toca a nota correspondente.
+    /// Reproduz uma nota no dispositivo de saída de áudio com a mesma duração do BPM
     /// </summary>
+    /// <param name="note">MIDI note to be played</param>
+    /// <param name="volume">Volume</param>
+    /// <param name="instrument">Instrument</param>
+    /// <param name="bpm">BPM will dictate note duration</param>
     public async void PlayNote(int note, int volume, int instrument, int bpm)
     {
       // calcula tempo de espera baseado no BPM selecionado
@@ -49,8 +56,9 @@ namespace TCP_TF
     }
 
     /// <summary>
-    /// Recebe uma lista de comandos e reproduz.
+    /// Recebe uma lista de comandos MIDI e reproduz no dispositivo de saída de áudio
     /// </summary>
+    /// <param name="midiCommands">List of MIDI commands (KeyValuePairs)</param>
     public async void PlayCommands(List<KeyValuePair<string, int>> midiCommands)
     {
       int bpm = DEFAULT_BPM;
@@ -100,8 +108,10 @@ namespace TCP_TF
     }
 
     /// <summary>
-    /// Recebe uma lista de comandos e salva como musica em arquivo formato MIDI.
+    /// Recebe uma lista de comandos MIDI e salva como musica em arquivo tipo .mid
     /// </summary>
+    /// <param name="filename">File name</param>
+    /// <param name="midiCommands">List of MIDI commands (KeyValuePairs)</param>
     public void WriteFile(string filename, List<KeyValuePair<string, int>> midiCommands)
     {
       // volume a ser tocado
@@ -158,7 +168,7 @@ namespace TCP_TF
     }
 
     /// <summary>
-    /// Para a reprodução
+    /// Para a execução da musica
     /// </summary>
     public void Stop()
     {

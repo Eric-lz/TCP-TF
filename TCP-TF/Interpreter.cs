@@ -17,8 +17,12 @@ namespace TCP_TF
     public Interpreter() { }
 
     /// <summary>
-    /// Recebe o texto de entrada e converte em comandos para o reprodutor.
+    /// Converte uma string (texto livre) para uma lista de comandos MIDI
     /// </summary>
+    /// <param name="text">String de entrada (texto livre)</param>
+    /// <param name="bpm">BPM da musica</param>
+    /// <param name="instrumentName">Instrumento inicial</param>
+    /// <returns>List of KeyValuePairs (comando, valor)</returns>
     public static List<KeyValuePair<string, int>> textToMidiCommands(string text, int bpm, string instrumentName)
     {
       // array de caracteres vindo do Parser
@@ -103,20 +107,24 @@ namespace TCP_TF
     }
 
     /// <summary>
-    /// Verifica se o caractere corresponde a uma nota.
+    /// Verifica se um caractere corresponde a uma nota musical (C, D, E, F, G, A, B)
     /// </summary>
+    /// <param name="character">Character to be tested</param>
+    /// <returns>True if character is a note, false otherwise</returns>
     private static bool CharCorrespondsToNote(char character)
     {
       return (character >= 'A' && character <= 'G');
     }
 
     /// <summary>
-    /// Verifica se o caractere corresponde a um instrumento.
+    /// Verifica se um caractere corresponde a um instrumento no mapeamento
+    /// (caractere está presente no dictionary <see cref="Dictionaries.charToMIDIInstrument"/>
     /// </summary>
+    /// <param name="character">Character to be tested</param>
+    /// <returns>True if character is mapped to an instrument, false otherwise</returns>
     private static bool CharCorrespondsToInstrument(char character)
     {
-      return (character == '!' || character == '\n' || character == '\r' || character == ';' || character == ',' ||
-      char.ToLower(character) == 'i' || char.ToLower(character) == 'o' || char.ToLower(character) == 'u');
+      return Dictionaries.charToMIDIInstrument.TryGetValue(character, out _);
     }
 
   }
