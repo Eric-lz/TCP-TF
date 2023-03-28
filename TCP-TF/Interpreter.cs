@@ -1,90 +1,111 @@
-﻿using System.Diagnostics.Metrics;
+﻿using NAudio.Midi;
+using System.Diagnostics.Metrics;
 
 namespace TCP_TF
 {
   public class Interpreter
   {
-
-    private readonly Dictionary<char, string> _charToMusicalNotes;
-    private readonly Dictionary<char, int> _charToInstruments;
-    private readonly Dictionary<string, int> _instrumentToMIDI;
-    private SoundReproduction _reproducer;
-    private float _currentBPM;
-    private int _currentInstrument;
-    private bool isRunning;
-    private bool stopSignal;
+    // Constantes
+    const int NOTES_IN_OCTAVE = 12;
+    const int MAX_OCTAVE = 3;
+    const int DEFAULT_VOLUME = 60;
+    const int DEFAULT_OCTAVE = 0;
 
     /// <summary>
     /// Construtor do interpretador.
     /// </summary>
-    public Interpreter(SoundReproduction reproducer)
-    {
-      _charToMusicalNotes = InicializeMusicalNotesDict();
-      _charToInstruments = InicializeInstrumentsDict();
-      _instrumentToMIDI = InicializeNameToMIDIDict();
-      _reproducer = reproducer;
-    }
+    public Interpreter() { }
 
     /// <summary>
-    /// Recebe uma cadeia de caracteres e gera sons de acordo.
+    /// Recebe o texto de entrada e converte em comandos para o reprodutor.
     /// </summary>
-    public async void Interpret(char[] text_characteres)
+    public static List<KeyValuePair<string, int>> textToMidiCommands(string text, int bpm, string instrumentName)
     {
-      // flag que indica se está reproduzindo 
-      isRunning = true;
+      // array de caracteres vindo do Parser
+      char[] characters = Parser.Parse(text);
 
-      // laço de leitura char por char
-      for (int i = 0; i < text_characteres.Length; i++)
+      int octave = DEFAULT_OCTAVE;
+      int volume = DEFAULT_VOLUME;
+      int instrument = Dictionaries.instrumentToMIDI[instrumentName];
+
+      // lista de comandos
+      List<KeyValuePair<string, int>> midiCommands = new();
+      char prev_character = '\0';
+
+      // inicializa lista com o instrumento e o BPM
+      midiCommands.Add(new KeyValuePair<string, int>("Instrument", instrument));
+      midiCommands.Add(new KeyValuePair<string, int>("BPM", bpm));
+
+      foreach (var character in characters)
       {
-        // read char by char
-        char character = text_characteres[i];
-
-        // se for null terminator OU receber sinal de parada, para a reprodução
-        if(character == '\0' || stopSignal == true)
+        // null terminator, chegou no fim do texto
+        if (character == '\0')
         {
-          _reproducer.StopPlayback();
-          isRunning = false;
-          stopSignal = false;
+          midiCommands.Add(new KeyValuePair<string, int>("Stop", 0));
           break;
         }
 
-        if (CharCorrespondsToNote(character))
+        // char corresponde a nota
+        else if (CharCorrespondsToNote(character))
         {
-          float sleepTime = (1 / _currentBPM) * 60 * 1000;
-          _reproducer.PlayNote(_charToMusicalNotes[character]);
-          await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
+          int note = Dictionaries.charToMIDINote[character] + (octave * NOTES_IN_OCTAVE);
+          midiCommands.Add(new KeyValuePair<string, int>("Note", note));
         }
+
+        // char corresponde a aumentar volume
         else if (character == ' ')
         {
-          _reproducer.SetVolume(_reproducer.GetVolume() + 30);
+          if (volume == 60) volume = 120;
+          else volume = 60;
+          midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
         }
+
+        // char corresponde a alterar instrumento
         else if (CharCorrespondsToInstrument(character))
         {
-          _reproducer.SetInstrument(_charToInstruments[character]);
+          instrument = Dictionaries.charToMIDIInstrument[character];
+          midiCommands.Add(new KeyValuePair<string, int>("Instrument", instrument));
         }
+
+        // char corresponde a alterar instrumento (soma do atual + digito)
         else if (char.IsDigit(character))
         {
-          _reproducer.SetInstrument(_reproducer.GetInstrument() + (int)char.GetNumericValue(character));
+          instrument += (int)char.GetNumericValue(character);
+          midiCommands.Add(new KeyValuePair<string, int>("Instrument", instrument));
         }
+
+        // char corresponde a aumentar oitava
         else if (character == '?' || character == '.')
         {
-          _reproducer.IncreaseOneOctave();
+          if (octave < MAX_OCTAVE-1) octave++;
+          else octave = DEFAULT_OCTAVE;
         }
-        else if (i > 0)
+
+        // char anterior era nota
+        else if (CharCorrespondsToNote(prev_character))
         {
-          char prev_character = text_characteres[i - 1];
-          if (CharCorrespondsToNote(prev_character))
-          {
-            _reproducer.PlayNote(_charToMusicalNotes[prev_character]);
-          }
+          int note = Dictionaries.charToMIDINote[prev_character] + (octave * NOTES_IN_OCTAVE);
+          midiCommands.Add(new KeyValuePair<string, int>("Note", note));
         }
+
+        // char anterior não era nota, faz uma pausa (nota silenciosa)
+        else
+        {
+          midiCommands.Add(new KeyValuePair<string, int>("Volume", 0));
+          midiCommands.Add(new KeyValuePair<string, int>("Note", 0));
+          midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
+        }
+
+        prev_character = character;
       }
+
+      return midiCommands;
     }
 
     /// <summary>
     /// Verifica se o caractere corresponde a uma nota.
     /// </summary>
-    private bool CharCorrespondsToNote(char character)
+    private static bool CharCorrespondsToNote(char character)
     {
       return (character >= 'A' && character <= 'G');
     }
@@ -92,104 +113,12 @@ namespace TCP_TF
     /// <summary>
     /// Verifica se o caractere corresponde a um instrumento.
     /// </summary>
-    private bool CharCorrespondsToInstrument(char character)
+    private static bool CharCorrespondsToInstrument(char character)
     {
-      return (character == '!' || character == '\n' || character == ';' || character == ',' ||
+      return (character == '!' || character == '\n' || character == '\r' || character == ';' || character == ',' ||
       char.ToLower(character) == 'i' || char.ToLower(character) == 'o' || char.ToLower(character) == 'u');
     }
 
-    /// <summary>
-    /// Setter do BPM.
-    /// </summary>
-    public void SetBPM(int bpm)
-    {
-      _currentBPM = bpm;
-      _reproducer.SetBPM(bpm);
-    }
-
-    /// <summary>
-    /// Setter do Instrumento.
-    /// </summary>
-    public void SetInstrument(string input)
-    {
-      _currentInstrument = _instrumentToMIDI[input];
-      _reproducer.SetInstrument(_currentInstrument);
-    }
-        
-    /// <summary>
-    /// Para a reprodução.
-    /// </summary> 
-    public void Stop()
-    {
-      // envia sinal de parada para o reproducer
-      _reproducer.StopPlayback();
-
-      // se interpretador estiver rodando, envia sinal de parada
-      if(isRunning)
-      {
-        stopSignal = true;
-      }
-    }
-
-    /// <summary>
-    /// Inicializa o dicionário que mapeia cada caractere para uma nota.
-    /// </summary>
-    private Dictionary<char, string> InicializeMusicalNotesDict()
-    {
-      Dictionary<char, string> charToMusicalNotes = new Dictionary<char, string>
-      {
-        {'A', "Lá"},
-        {'B', "Si"},
-        {'C', "Dó"},
-        {'D', "Ré"},
-        {'E', "Mi"},
-        {'F', "Fá"},
-        {'G', "Sol"}
-      };
-      return charToMusicalNotes;
-    }
-
-    /// <summary>
-    /// Inicializa o dicionário que mapeia cada caractere para um instrumento.
-    /// </summary>
-    private Dictionary<char, int> InicializeInstrumentsDict()
-    {
-      Dictionary<char, int> charToInstruments = new Dictionary<char, int>
-      {
-        {'!', 114},
-        {'O', 7},
-        {'o', 7},
-        {'I', 7},
-        {'i', 7},
-        {'U', 7},
-        {'u', 7},
-        {'\n', 15},
-        {';', 76},
-        {',', 20}
-      };
-      return charToInstruments;
-    }
-
-    /// <summary>
-    /// Inicializa o dicionário que mapeia cada instrumento para seu valor MIDI.
-    /// </summary>
-    private Dictionary<string, int> InicializeNameToMIDIDict()
-    {
-      Dictionary<string, int> instrumentToMIDI = new Dictionary<string, int>
-      {
-        {"Piano", 0},
-        {"Tubular Bell", 14},
-        {"Accordion", 21},
-        {"Acoustic Guitar", 24},
-        {"Distortion Guitar", 30},
-        {"Slap Bass", 36},
-        {"Synth Bass", 38},
-        {"Ocarina", 79},
-        {"Polysynth", 90 },
-        {"Synth Drum", 118}
-      };
-      return instrumentToMIDI;
-    }
   }
 }
 
