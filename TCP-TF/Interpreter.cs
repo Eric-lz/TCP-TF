@@ -55,8 +55,8 @@ namespace TCP_TF
         // char corresponde a aumentar volume
         else if (character == ' ')
         {
-          if (volume < 120) volume += 30;
-          else volume = DEFAULT_VOLUME;
+          if (volume == 60) volume = 120;
+          else volume = 60;
           midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
         }
 
@@ -77,7 +77,7 @@ namespace TCP_TF
         // char corresponde a aumentar oitava
         else if (character == '?' || character == '.')
         {
-          if (octave < MAX_OCTAVE) octave++;
+          if (octave < MAX_OCTAVE-1) octave++;
           else octave = DEFAULT_OCTAVE;
         }
 
