@@ -84,8 +84,16 @@ namespace TCP_TF
         // char anterior era nota
         else if (CharCorrespondsToNote(prev_character))
         {
-          int note = Dictionaries.charToMIDINote[character] + (octave * NOTES_IN_OCTAVE);
+          int note = Dictionaries.charToMIDINote[prev_character] + (octave * NOTES_IN_OCTAVE);
           midiCommands.Add(new KeyValuePair<string, int>("Note", note));
+        }
+
+        // char anterior não era nota, faz uma pausa (nota silenciosa)
+        else
+        {
+          midiCommands.Add(new KeyValuePair<string, int>("Volume", 0));
+          midiCommands.Add(new KeyValuePair<string, int>("Note", 0));
+          midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
         }
 
         prev_character = character;
