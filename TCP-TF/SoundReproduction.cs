@@ -11,11 +11,10 @@ namespace TCP_TF
     private readonly MidiOut midiOut;
 
     // Flag que indica se reprodutor está executando
-    private bool _isRunning;
+    private bool _isPlaying;
 
     // Constantes
     const int DEFAULT_VOLUME = 60;
-    const int DEFAULT_OCTAVE = 0;
     const int DEFAULT_INSTRUMENT = 0;
     const int DEFAULT_BPM = 120;
     const int MIDI_FILE_TYPE = 0;
@@ -28,7 +27,7 @@ namespace TCP_TF
       // MIDI output
       midiOut = new MidiOut(DEVICE_NO);
 
-      _isRunning = false;
+      _isPlaying = false;
     }
 
     /// <summary>
@@ -55,43 +54,44 @@ namespace TCP_TF
     /// <summary>
     /// Recebe uma lista de comandos e reproduz.
     /// </summary>
-    public async void PlayCommands(List<KeyValuePair<string, int>> commands)
+    public async void PlayCommands(List<KeyValuePair<string, int>> midiCommands)
     {
-      int w_bpm = DEFAULT_BPM;
-      int w_volume = DEFAULT_VOLUME;
-      int w_instrument = DEFAULT_INSTRUMENT;
+      int bpm = DEFAULT_BPM;
+      int volume = DEFAULT_VOLUME;
+      int instrument = DEFAULT_INSTRUMENT;
 
-      float sleepTime = (1 / (float)w_bpm) * 60 * 1000;
+      float sleepTime = (1 / (float)bpm) * 60 * 1000;
 
       // retorna da função se já estiver rodando
-      if (_isRunning)
+      if (_isPlaying)
       {
         return;
       }
 
-      _isRunning = true;
+      _isPlaying = true;
 
-      foreach (KeyValuePair<string, int> command in commands)
+      foreach (KeyValuePair<string, int> midiCommand in midiCommands)
       {
-        if (_isRunning)
+        if (_isPlaying)
         {
-          switch (command.Key)
+          switch (midiCommand.Key)
           {
             case "Note":
-              PlayNote(command.Value, w_volume, w_instrument, w_bpm);
+              PlayNote(midiCommand.Value, volume, instrument, bpm);
               await Task.Delay(Convert.ToInt32(Math.Round(sleepTime)));
               break;
 
             case "Instrument":
-              w_instrument = command.Value;
+              instrument = midiCommand.Value;
               break;
 
             case "Volume":
-              w_volume = command.Value;
+              volume = midiCommand.Value;
               break;
 
             case "BPM":
-              w_bpm = command.Value;
+              bpm = midiCommand.Value;
+              sleepTime = (1 / (float)bpm) * 60 * 1000;
               break;
 
             case "Stop":
@@ -105,49 +105,49 @@ namespace TCP_TF
     /// <summary>
     /// Recebe uma lista de comandos e salva como musica em arquivo formato MIDI.
     /// </summary>
-    public void WriteFile(string filename, List<KeyValuePair<string, int>> commands)
+    public void WriteFile(string filename, List<KeyValuePair<string, int>> midiCommands)
     {
       // volume a ser tocado
-      int w_volume = DEFAULT_VOLUME;
+      int volume = DEFAULT_VOLUME;
 
       // tempo
-      int w_bpm = DEFAULT_BPM;
+      int bpm = DEFAULT_BPM;
       long absoluteTime = 0;
 
       // tempo de duração da nota
-      int NoteDuration = 3 * w_bpm / 4;
+      int NoteDuration = 3 * bpm / 4;
 
       // cria uma collection de eventos MIDI
-      var collection = new MidiEventCollection(MIDI_FILE_TYPE, w_bpm);
+      var collection = new MidiEventCollection(MIDI_FILE_TYPE, bpm);
 
       // inicializa collection
       collection.AddEvent(new TextEvent("Note Stream", MetaEventType.TextEvent, absoluteTime), TRACK_NUMBER);
       absoluteTime++;
-      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / w_bpm), absoluteTime), TRACK_NUMBER);
+      collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / bpm), absoluteTime), TRACK_NUMBER);
       absoluteTime++;
 
       // preenche collection
-      foreach (KeyValuePair<string, int> command in commands)
+      foreach (KeyValuePair<string, int> midiCommand in midiCommands)
       {
-        switch (command.Key)
+        switch (midiCommand.Key)
         {
           case "Note":
-            collection.AddEvent(new NoteOnEvent(absoluteTime, CHANNEL_NUMBER, command.Value, w_volume, NoteDuration), TRACK_NUMBER);
-            collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, CHANNEL_NUMBER, MidiCommandCode.NoteOff, command.Value, 0), TRACK_NUMBER);
-            absoluteTime += w_bpm;
+            collection.AddEvent(new NoteOnEvent(absoluteTime, CHANNEL_NUMBER, midiCommand.Value, volume, NoteDuration), TRACK_NUMBER);
+            collection.AddEvent(new NoteEvent(absoluteTime + NoteDuration, CHANNEL_NUMBER, MidiCommandCode.NoteOff, midiCommand.Value, 0), TRACK_NUMBER);
+            absoluteTime += bpm;
             break;
 
           case "Instrument":
-            collection.AddEvent(new PatchChangeEvent(absoluteTime, CHANNEL_NUMBER, command.Value), TRACK_NUMBER);
+            collection.AddEvent(new PatchChangeEvent(absoluteTime, CHANNEL_NUMBER, midiCommand.Value), TRACK_NUMBER);
             break;
 
           case "Volume":
-            w_volume = command.Value;
+            volume = midiCommand.Value;
             break;
 
           case "BPM":
-            w_bpm = command.Value;
-            collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / w_bpm), absoluteTime), TRACK_NUMBER);
+            bpm = midiCommand.Value;
+            collection.AddEvent(new TempoEvent(Convert.ToInt32((60 * 1000 * 1000) / bpm), absoluteTime), TRACK_NUMBER);
             break;
 
           case "Stop":
@@ -166,7 +166,7 @@ namespace TCP_TF
     public void Stop()
     {
       // flag de parada
-      _isRunning = false;
+      _isPlaying = false;
 
       // envia sinal de parada para todas as notas possíveis individualmente
       for (int i = 0; i < 127; i++)

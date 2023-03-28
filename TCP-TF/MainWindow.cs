@@ -4,12 +4,14 @@ namespace TCP_TF
 {
   public partial class MainWindow : Form
   {
-    private Interpreter _interpreter;
+    private readonly SoundReproduction _player;
 
     public MainWindow()
     {
       InitializeComponent();
-      _interpreter = new Interpreter();
+
+      // inicializa reprodutor
+      _player = new SoundReproduction();
 
       // set instrument drop-down to default
       list_Instrument.SelectedIndex = 0;
@@ -20,13 +22,12 @@ namespace TCP_TF
     {
       // leitura do texto
       string text = text_Input.Text;
+      int bpm = (int)num_BPM.Value;
+      var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // set BPM e instrumentos selecionados
-      _interpreter.BPM = (int)num_BPM.Value;
-      _interpreter.Instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
-
-      // reproduz musica
-      _interpreter.Play(text);
+      // inicia reprodução
+      var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      _player.PlayCommands(midiCommands);
     }
 
     // Botão de seleção de arquivo
@@ -50,7 +51,7 @@ namespace TCP_TF
     // Botão de parar execução
     private void button_Stop_Click(object sender, EventArgs e)
     {
-      _interpreter.Stop();
+      _player.Stop();
     }
 
     private void button_SaveFile_Click(object sender, EventArgs e)
@@ -64,12 +65,13 @@ namespace TCP_TF
       // leitura do texto
       string text = text_Input.Text;
 
-      // set BPM e instrumentos selecionados
-      _interpreter.BPM = (int)num_BPM.Value;
-      _interpreter.Instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
+      string filename = saveFileDialog1.FileName;
+      int bpm = (int)num_BPM.Value;
+      var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // salva musica no arquivo indicado
-      _interpreter.SaveFile(saveFileDialog1.FileName, text);
+      // inicia reprodução
+      var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      _player.WriteFile(filename, midiCommands);
     }
   }
 }
