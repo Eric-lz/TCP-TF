@@ -1,5 +1,3 @@
-using static System.Net.Mime.MediaTypeNames;
-
 namespace TCP_TF
 {
   public partial class MainWindow : Form
@@ -22,11 +20,14 @@ namespace TCP_TF
     {
       // leitura do texto
       string text = text_Input.Text;
+
+      // leitura dos parâmetros de entrada da interface
       int bpm = (int)num_BPM.Value;
       var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // inicia reprodução
+      // converte texto para comandos MIDI
       var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      // envia comandos MIDI para reprodução
       _player.PlayCommands(midiCommands);
     }
 
@@ -65,12 +66,16 @@ namespace TCP_TF
       // leitura do texto
       string text = text_Input.Text;
 
+      // leitura do nome do arquivo
       string filename = saveFileDialog1.FileName;
+
+      // leitura dos parâmetros de entrada da interface
       int bpm = (int)num_BPM.Value;
       var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // inicia reprodução
+      // converte texto para comandos MIDI
       var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      // salva comandos MIDI em arquivo .mid
       _player.WriteFile(filename, midiCommands);
     }
   }

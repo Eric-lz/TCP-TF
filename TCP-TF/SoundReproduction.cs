@@ -1,7 +1,4 @@
-﻿using Microsoft.VisualBasic.ApplicationServices;
-using NAudio.Midi;
-using NAudio.SoundFont;
-using System.Diagnostics.Metrics;
+﻿using NAudio.Midi;
 
 namespace TCP_TF
 {
@@ -178,7 +175,7 @@ namespace TCP_TF
       // envia sinal de parada para todas as notas possíveis individualmente
       for (int i = 0; i < 127; i++)
       {
-        midiOut.Send(MidiMessage.StopNote(i, 0, 1).RawData);
+        midiOut.Send(MidiMessage.StopNote(i, 0, CHANNEL_NUMBER).RawData);
       }
     }
   }

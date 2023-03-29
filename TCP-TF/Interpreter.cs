@@ -1,7 +1,4 @@
-﻿using NAudio.Midi;
-using System.Diagnostics.Metrics;
-
-namespace TCP_TF
+﻿namespace TCP_TF
 {
   public class Interpreter
   {
@@ -38,6 +35,7 @@ namespace TCP_TF
 
       // inicializa lista com o instrumento e o BPM
       midiCommands.Add(new KeyValuePair<string, int>("Instrument", instrument));
+      midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
       midiCommands.Add(new KeyValuePair<string, int>("BPM", bpm));
 
       foreach (var character in characters)
