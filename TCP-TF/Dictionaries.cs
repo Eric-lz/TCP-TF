@@ -37,13 +37,13 @@
 
     public static readonly Dictionary<char, int> charToMIDINote = new()
     {
-      {'C', 60},
-      {'D', 62},
-      {'E', 64},
-      {'F', 65},
-      {'G', 67},
-      {'A', 69},
-      {'B', 71}
+      {'C', 12},
+      {'D', 14},
+      {'E', 16},
+      {'F', 17},
+      {'G', 19},
+      {'A', 9},
+      {'B', 11}
     };
   }
 }

@@ -1,5 +1,3 @@
-using static System.Net.Mime.MediaTypeNames;
-
 namespace TCP_TF
 {
   public partial class MainWindow : Form
@@ -22,11 +20,16 @@ namespace TCP_TF
     {
       // leitura do texto
       string text = text_Input.Text;
-      int bpm = (int)num_BPM.Value;
+
+      // leitura dos parâmetros iniciais da interface
+      int bpm = bar_BPM.Value;
+      int volume = bar_Volume.Value;
+      int octave = bar_Octave.Value;
       var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // inicia reprodução
-      var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      // converte texto para comandos MIDI
+      var midiCommands = Interpreter.textToMidiCommands(text, bpm, volume, octave, instrument);
+      // envia comandos MIDI para reprodução
       _player.PlayCommands(midiCommands);
     }
 
@@ -65,13 +68,40 @@ namespace TCP_TF
       // leitura do texto
       string text = text_Input.Text;
 
+      // leitura do nome do arquivo
       string filename = saveFileDialog1.FileName;
-      int bpm = (int)num_BPM.Value;
+
+      // leitura dos parâmetros iniciais da interface
+      int bpm = bar_BPM.Value;
+      int volume = bar_Volume.Value;
+      int octave = bar_Octave.Value;
       var instrument = list_Instrument.GetItemText(list_Instrument.SelectedItem);
 
-      // inicia reprodução
-      var midiCommands = Interpreter.textToMidiCommands(text, bpm, instrument);
+      // converte texto para comandos MIDI
+      var midiCommands = Interpreter.textToMidiCommands(text, bpm, volume, octave, instrument);
+      // salva comandos MIDI em arquivo .mid
       _player.WriteFile(filename, midiCommands);
+    }
+
+    private void bar_BPM_Scroll(object sender, EventArgs e)
+    {
+      label_setBPM.Text = bar_BPM.Value.ToString();
+    }
+
+    private void bar_Volume_Scroll(object sender, EventArgs e)
+    {
+      label_setVolume.Text = bar_Volume.Value.ToString();
+    }
+
+    private void bar_Octave_Scroll(object sender, EventArgs e)
+    {
+      label_setOctave.Text = bar_Octave.Value.ToString();
+    }
+
+    private void button_Help_Click(object sender, EventArgs e)
+    {
+      var help = new HelpWindow();
+      help.Show();
     }
   }
 }
