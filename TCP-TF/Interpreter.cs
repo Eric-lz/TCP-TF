@@ -4,9 +4,7 @@
   {
     // Constantes
     const int NOTES_IN_OCTAVE = 12;
-    const int MAX_OCTAVE = 3;
-    const int DEFAULT_VOLUME = 60;
-    const int DEFAULT_OCTAVE = 0;
+    const int MAX_OCTAVE = 8;
 
     /// <summary>
     /// Construtor do interpretador.
@@ -20,14 +18,15 @@
     /// <param name="bpm">BPM da musica</param>
     /// <param name="instrumentName">Instrumento inicial</param>
     /// <returns>List of KeyValuePairs (comando, valor)</returns>
-    public static List<KeyValuePair<string, int>> textToMidiCommands(string text, int bpm, string instrumentName)
+    public static List<KeyValuePair<string, int>> textToMidiCommands(string text, int bpm, int volume, int octave, string instrumentName)
     {
       // array de caracteres vindo do Parser
       char[] characters = Parser.Parse(text);
 
-      int octave = DEFAULT_OCTAVE;
-      int volume = DEFAULT_VOLUME;
+      // salva parâmetros inciais
       int instrument = Dictionaries.instrumentToMIDI[instrumentName];
+      int startingOctave = octave;
+      int startingVolume = volume;
 
       // lista de comandos
       List<KeyValuePair<string, int>> midiCommands = new();
@@ -57,8 +56,8 @@
         // char corresponde a aumentar volume
         else if (character == ' ')
         {
-          if (volume == 60) volume = 120;
-          else volume = 60;
+          if (volume <= 100) volume += 27;
+          else volume = startingVolume;
           midiCommands.Add(new KeyValuePair<string, int>("Volume", volume));
         }
 
@@ -80,7 +79,7 @@
         else if (character == '?' || character == '.')
         {
           if (octave < MAX_OCTAVE-1) octave++;
-          else octave = DEFAULT_OCTAVE;
+          else octave = startingOctave;
         }
 
         // char anterior era nota
