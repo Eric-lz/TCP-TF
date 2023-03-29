@@ -334,9 +334,9 @@
       label17.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
       label17.Location = new Point(4, 7);
       label17.Name = "label17";
-      label17.Size = new Size(75, 19);
+      label17.Size = new Size(156, 19);
       label17.TabIndex = 0;
-      label17.Text = "Caractere !";
+      label17.Text = "Caractere ! (exclamação)";
       // 
       // label24
       // 
@@ -390,9 +390,9 @@
       label23.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
       label23.Location = new Point(4, 103);
       label23.Name = "label23";
-      label23.Size = new Size(74, 19);
+      label23.Size = new Size(127, 19);
       label23.TabIndex = 0;
-      label23.Text = "Caractere ,";
+      label23.Text = "Caractere , (vírgula)";
       // 
       // label30
       // 
@@ -423,20 +423,20 @@
       label20.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
       label20.Location = new Point(4, 246);
       label20.Name = "label20";
-      label20.Size = new Size(77, 19);
+      label20.Size = new Size(153, 19);
       label20.TabIndex = 0;
-      label20.Text = "Caractere ?";
+      label20.Text = "Caractere ? ou . (ponto)";
       // 
       // label19
       // 
       label19.Anchor = AnchorStyles.Left;
       label19.AutoSize = true;
       label19.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-      label19.Location = new Point(4, 185);
+      label19.Location = new Point(4, 176);
       label19.Name = "label19";
-      label19.Size = new Size(129, 19);
+      label19.Size = new Size(129, 38);
       label19.TabIndex = 0;
-      label19.Text = "Dígito par ou ímpar";
+      label19.Text = "Dígito par ou ímpar\r\n(1 a 9)\r\n";
       // 
       // label26
       // 
