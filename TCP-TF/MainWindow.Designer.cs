@@ -95,7 +95,7 @@
       // 
       // button_Browse
       // 
-      button_Browse.Location = new Point(366, 15);
+      button_Browse.Location = new Point(297, 15);
       button_Browse.Name = "button_Browse";
       button_Browse.Size = new Size(89, 30);
       button_Browse.TabIndex = 7;
@@ -150,12 +150,13 @@
       // 
       // button_Help
       // 
-      button_Help.Location = new Point(297, 15);
+      button_Help.Location = new Point(392, 15);
       button_Help.Name = "button_Help";
       button_Help.Size = new Size(63, 30);
       button_Help.TabIndex = 14;
       button_Help.Text = "Help";
       button_Help.UseVisualStyleBackColor = true;
+      button_Help.Click += button_Help_Click;
       // 
       // label_Params
       // 
@@ -292,7 +293,9 @@
       Controls.Add(label_Input);
       Controls.Add(text_Input);
       Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+      FormBorderStyle = FormBorderStyle.FixedSingle;
       Margin = new Padding(4);
+      MaximizeBox = false;
       Name = "MainWindow";
       SizeGripStyle = SizeGripStyle.Hide;
       Text = "MIDI Text to Sound";

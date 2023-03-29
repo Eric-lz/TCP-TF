@@ -97,5 +97,11 @@ namespace TCP_TF
     {
       label_setOctave.Text = bar_Octave.Value.ToString();
     }
+
+    private void button_Help_Click(object sender, EventArgs e)
+    {
+      var help = new HelpWindow();
+      help.Show();
+    }
   }
 }
