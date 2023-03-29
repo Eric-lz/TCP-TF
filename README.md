@@ -26,7 +26,7 @@ O mapeamento proposto é o seguinte:
 
 - Entrada de texto livre na caixa de texto;
 - Entrada de texto através de arquivo de texto (.txt);
-- Seleção de instrumentos e BPM
+- Seleção de BPM, volume, oitava e instrumento;
 - Reprodução da música;
 - Salvar a música em arquivo MIDI (.mid).
 
@@ -36,4 +36,5 @@ Este trabalho utiliza o pacote NuGet [NAudio.Midi](https://www.nuget.org/package
 
 ## Interface
 
-_screenshots_
+![interface1](img/interface1.png)
+![interface2](img/interface2.png)
